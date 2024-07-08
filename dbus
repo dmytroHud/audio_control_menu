@@ -1,28 +1,36 @@
+#!/usr/bin/env python3
+
 import sys
+import argparse
 from PlayerControlWidget import PlayerControlWidget
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QListWidget, QListWidgetItem, QPushButton, QLabel, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QListWidget, QListWidgetItem
 from PyQt5.QtCore import QTimer
 import subprocess
+from Xlib import display
 
 class PlayerInfoWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.setStyleSheet("background-color: #2f343f; color: #D0CFCC")
-        self.players_info = {}
+        self.set_custom_wm_class("CustomMixer", "CustomMixer")
         self.setWindowTitle('Player Info')
+        self.setGeometry(200, 300, 400, 450)
+
+        self.players_info = {}
+        self.previous_players_info = {}
         self.layout = QVBoxLayout()
         self.player_list = QListWidget()
         self.layout.addWidget(self.player_list)
         self.setLayout(self.layout)
 
+        self.update_player_info()
+
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_player_info)
-        self.timer.start(1000)
+        self.timer.start(500)
 
     def update_player_info(self):
-        # Clear previous items
-        self.player_list.clear()
-        self.players_info.clear()
+        new_players_info = {}
 
         # Get current players using playerctl
         try:
@@ -30,31 +38,51 @@ class PlayerInfoWidget(QWidget):
             players = players_raw.decode('utf-8').strip().split('\n')
 
             for player_id in players:
-                output = subprocess.check_output(['playerctl', '-p', player_id, 'metadata', '--format', '{{artist}} - {{title}}'])
                 status = subprocess.check_output(['playerctl', '-p', player_id, 'status'])
-
-                player_info = output.decode('utf-8').strip()
                 status_info = status.decode('utf-8').strip()
 
-                self.players_info[player_id] = {
+                if status_info == "Stopped":
+                    continue
+
+                output = subprocess.check_output(['playerctl', '-p', player_id, 'metadata', '--format', '{{artist}} - {{title}}'])
+                player_info = output.decode('utf-8').strip()
+            
+                new_players_info[player_id] = {
                     "meta": player_info,
                     "status": status_info
                 }
-
-            self.print_players_controls()
         except subprocess.CalledProcessError:
-            # Handle error (playerctl not installed or no players found)
-            self.player_list.addItem('No players found')
+            pass
+
+        # Only update if the information has changed
+        if new_players_info != self.players_info:
+            self.players_info = new_players_info
+            self.print_players_controls()
 
     def print_players_controls(self):
+        self.player_list.clear()
         for player_id, player_info in self.players_info.items():
             item = QListWidgetItem(self.player_list)
             widget = PlayerControlWidget(player_id, player_info)
             item.setSizeHint(widget.sizeHint())  # Ensure proper sizing of the widget
             self.player_list.setItemWidget(item, widget)
 
+    def set_custom_wm_class(self, wm_name, wm_class):
+        d = display.Display()
+        w = d.create_resource_object('window', int(self.winId()))
+        w.set_wm_name(wm_name)
+        w.set_wm_class(wm_class, wm_class)
+        d.flush()
+
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Player Info Widget')
+    parser.add_argument('--posx', type=int, default=100, help='X position of the window')
+    parser.add_argument('--posy', type=int, default=100, help='Y position of the window')
+
+    args = parser.parse_args()
+
     app = QApplication(sys.argv)
     widget = PlayerInfoWidget()
+    widget.move(args.posx, args.posy)
     widget.show()
     sys.exit(app.exec_())
