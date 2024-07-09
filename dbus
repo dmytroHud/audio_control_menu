@@ -3,8 +3,8 @@
 import sys
 import argparse
 from PlayerControlWidget import PlayerControlWidget
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QListWidget, QListWidgetItem
-from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QListWidget, QListWidgetItem, QAbstractItemView
+from PyQt5.QtCore import QTimer, Qt
 import subprocess
 from Xlib import display
 
@@ -14,12 +14,14 @@ class PlayerInfoWidget(QWidget):
         self.setStyleSheet("background-color: #2f343f; color: #D0CFCC")
         self.set_custom_wm_class("CustomMixer", "CustomMixer")
         self.setWindowTitle('Player Info')
-        self.setGeometry(posx, posy, 400, 300)
+        self.setGeometry(posx, posy, 430, 300)
 
         self.players_info = {}
         self.previous_players_info = {}
         self.layout = QVBoxLayout()
         self.player_list = QListWidget()
+        self.player_list.setFocusPolicy(Qt.NoFocus);
+        self.player_list.setSelectionMode(QAbstractItemView.NoSelection)
         self.layout.addWidget(self.player_list)
         self.setLayout(self.layout)
 
@@ -64,6 +66,7 @@ class PlayerInfoWidget(QWidget):
         for player_id, player_info in self.players_info.items():
             item = QListWidgetItem(self.player_list)
             widget = PlayerControlWidget(player_id, player_info)
+            
             item.setSizeHint(widget.sizeHint())  # Ensure proper sizing of the widget
             self.player_list.setItemWidget(item, widget)
 
@@ -74,7 +77,7 @@ class PlayerInfoWidget(QWidget):
         w.set_wm_class(wm_class, wm_class)
         d.flush()
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Player Info Widget')
     parser.add_argument('--posx', type=int, default=100, help='X position of the window')
     parser.add_argument('--posy', type=int, default=100, help='Y position of the window')
@@ -85,3 +88,6 @@ if __name__ == '__main__':
     widget = PlayerInfoWidget(args.posx, args.posy)
     widget.show()
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()

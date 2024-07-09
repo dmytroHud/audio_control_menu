@@ -1,7 +1,7 @@
 import sys
 from Ticker import Ticker
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QListWidget, QListWidgetItem, QPushButton, QLabel, QHBoxLayout
-from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QListWidget, QListWidgetItem, QPushButton, QLabel, QHBoxLayout, QCheckBox
+from PyQt5.QtCore import QTimer, Qt
 import subprocess
 
 class PlayerControlWidget(QWidget):
@@ -14,17 +14,9 @@ class PlayerControlWidget(QWidget):
 
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
-        #self.label = QLabel(self.player_info['meta'])
 
-        if len(self.player_info['meta']) > 40:
-            label = Ticker(self.player_info['meta'] + "  ♫  ")
-        else:
-            label = QLabel("♫  " + self.player_info['meta'])
-
-        label.setFixedWidth(250)
-
-        self.layout.addWidget(label)
-
+        self.print_pin_button()
+        self.print_label()
         self.print_prev_button()
         self.print_pause_play_button()
         self.print_next_button()
@@ -44,18 +36,49 @@ class PlayerControlWidget(QWidget):
         except subprocess.CalledProcessError:
             pass
 
+    def set_pinned(self):
+        subprocess.run(f"echo '{self.player_id}' > /tmp/active_player", shell=True, check=True);
+
     def action_next(self):
         subprocess.run(['playerctl', '-p', self.player_id, 'next', '2>/dev/null'])
 
     def action_previous(self):
         subprocess.run(['playerctl', '-p', self.player_id, 'previous', '2>/dev/null'])
 
+    def print_label(self):
+        if len(self.player_info['meta']) > 35:
+            label = Ticker(self.player_info['meta'] + "  ♫  ")
+        else:
+            label = QLabel("♫  " + self.player_info['meta'])
+
+        label.setFixedWidth(250)
+        self.layout.addWidget(label)
+
+    def print_pin_button(self):
+        self.pin_button = QPushButton();
+        self.pin_button.setText("☉")
+        self.pin_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5E5C64;
+                border: none;
+                color: white;
+                text-align: center;
+                text-decoration: none;
+                font-size: 18px;
+                margin-top: 0;
+                font-weight: 700;
+                border-radius: 10px;
+            }
+        """)
+        self.pin_button.clicked.connect(self.set_pinned)
+        self.layout.addWidget(self.pin_button)
+
     def print_pause_play_button(self):
         self.pause_play_button = QPushButton()
         self.pause_play_button.setFixedWidth(30)
         self.pause_play_button.setStyleSheet("""
             QPushButton {
-                background-color: #5E5C64; /* Green */
+                background-color: #5E5C64;
                 border: none;
                 color: white;
                 text-align: center;
@@ -76,7 +99,7 @@ class PlayerControlWidget(QWidget):
         self.next_button.setFixedWidth(30)
         self.next_button.setStyleSheet("""
             QPushButton {
-                background-color: #5E5C64; /* Green */
+                background-color: #5E5C64;
                 border: none;
                 color: white;
                 text-align: center;
@@ -94,10 +117,10 @@ class PlayerControlWidget(QWidget):
 
     def print_prev_button(self):
         self.prev_button = QPushButton()
-        self.prev_button.setFixedWidth(25)
+        self.prev_button.setFixedWidth(30)
         self.prev_button.setStyleSheet("""
             QPushButton {
-                background-color: #5E5C64; /* Green */
+                background-color: #5E5C64;
                 border: none;
                 color: white;
                 text-align: center;
@@ -109,6 +132,6 @@ class PlayerControlWidget(QWidget):
                 padding-bottom: 2px;
             }
         """)
-        self.prev_button.setText('❮')
+        self.prev_button.setText("❰")
         self.prev_button.clicked.connect(self.action_previous)
         self.layout.addWidget(self.prev_button)
