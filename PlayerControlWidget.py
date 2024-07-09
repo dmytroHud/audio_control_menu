@@ -16,10 +16,14 @@ class PlayerControlWidget(QWidget):
         self.setLayout(self.layout)
         #self.label = QLabel(self.player_info['meta'])
 
-        self.label = Ticker(self.player_info['meta'] + "  ♫ ")
+        if len(self.player_info['meta']) > 40:
+            label = Ticker(self.player_info['meta'] + "  ♫  ")
+        else:
+            label = QLabel("♫  " + self.player_info['meta'])
 
-        self.label.setFixedWidth(250)
-        self.layout.addWidget(self.label)
+        label.setFixedWidth(250)
+
+        self.layout.addWidget(label)
 
         self.print_prev_button()
         self.print_pause_play_button()
@@ -31,20 +35,20 @@ class PlayerControlWidget(QWidget):
             status = output.decode('utf-8').strip()
 
             if status == "Playing":
-                subprocess.run(['playerctl', '-p', self.player_id, 'pause'])
+                subprocess.run(['playerctl', '-p', self.player_id, 'pause', '2>/dev/null'])
                 self.pause_play_button.setText(self.play_icon)
             else:
-                subprocess.run(['playerctl', '-p', self.player_id, 'play'])
+                subprocess.run(['playerctl', '-p', self.player_id, 'play', '2>/dev/null'])
                 self.pause_play_button.setText(self.pause_icon)
 
         except subprocess.CalledProcessError:
             pass
 
     def action_next(self):
-        subprocess.run(['playerctl', '-p', self.player_id, 'next'])
+        subprocess.run(['playerctl', '-p', self.player_id, 'next', '2>/dev/null'])
 
     def action_previous(self):
-        subprocess.run(['playerctl', '-p', self.player_id, 'previous'])
+        subprocess.run(['playerctl', '-p', self.player_id, 'previous', '2>/dev/null'])
 
     def print_pause_play_button(self):
         self.pause_play_button = QPushButton()

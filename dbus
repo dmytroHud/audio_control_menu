@@ -14,7 +14,7 @@ class PlayerInfoWidget(QWidget):
         self.setStyleSheet("background-color: #2f343f; color: #D0CFCC")
         self.set_custom_wm_class("CustomMixer", "CustomMixer")
         self.setWindowTitle('Player Info')
-        self.setGeometry(posx, posy, 400, 450)
+        self.setGeometry(posx, posy, 400, 300)
 
         self.players_info = {}
         self.previous_players_info = {}
