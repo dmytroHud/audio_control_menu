@@ -9,12 +9,12 @@ import subprocess
 from Xlib import display
 
 class PlayerInfoWidget(QWidget):
-    def __init__(self):
+    def __init__(self, posx, posy):
         super().__init__()
         self.setStyleSheet("background-color: #2f343f; color: #D0CFCC")
         self.set_custom_wm_class("CustomMixer", "CustomMixer")
         self.setWindowTitle('Player Info')
-        self.setGeometry(200, 300, 400, 450)
+        self.setGeometry(posx, posy, 400, 450)
 
         self.players_info = {}
         self.previous_players_info = {}
@@ -82,7 +82,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     app = QApplication(sys.argv)
-    widget = PlayerInfoWidget()
-    widget.move(args.posx, args.posy)
+    widget = PlayerInfoWidget(args.posx, args.posy)
     widget.show()
     sys.exit(app.exec_())

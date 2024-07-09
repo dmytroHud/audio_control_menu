@@ -9,13 +9,13 @@ class Ticker(QLabel):
         self.current_index = 0
         self.scroll_step = 1  # Number of characters to scroll per step
 
-        self.setFixedWidth(200)  # Set fixed width
+        # self.setFixedWidth(350)  # Set fixed width
         self.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         self.setStyleSheet("background-color: #2f343f; color: #D0CFCC; padding: 5px;")
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.scroll_text)
-        self.timer.start(50)  # Update text every 30ms for smoother animation
+        self.timer.start(100)  # Update text every 30ms for smoother animation
 
     def scroll_text(self):
         display_text = self.full_text[self.current_index:] + " " + self.full_text[:self.current_index]
